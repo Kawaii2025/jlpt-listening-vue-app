@@ -27,7 +27,8 @@ export default defineComponent({
     MainContent,
     EditModal
   },
-  setup() {
+  emits: ['updateSentence'],
+  setup(props, { emit }) {
     // Global state can be managed here if needed
     const appState = ref({
       isMobileMenuOpen: false,

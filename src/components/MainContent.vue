@@ -103,7 +103,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted } from 'vue'
+import { defineComponent, ref, onMounted } from 'vue'
 import SentenceCard from './SentenceCard.vue'
 import { useTextProcessing } from '../composables/useTextProcessing'
 
