@@ -125,18 +125,6 @@ export default defineComponent({
       closeEditModal,
       saveEdit
     }
-
-    const updateSentence = (data) => {
-      // This method will be passed to MainContent
-    }
-
-    return {
-      appState,
-      editModal,
-      openEditModal,
-      closeEditModal,
-      saveEdit
-    }
   }
 })
 </script>
