@@ -1,7 +1,7 @@
 <template>
   <div class="bg-gray-50 font-sans text-neutral-800 min-h-screen flex flex-col">
     <Header />
-    <MainContent @open-edit-modal="openEditModal" @update-sentence="updateSentence" />
+    <router-view />
     <Footer />
     <EditModal 
       :show="editModal.show" 

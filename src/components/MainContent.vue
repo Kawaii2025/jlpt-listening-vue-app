@@ -5,58 +5,14 @@
       <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-neutral-800 mb-4 text-shadow">
         提升你的日语听力
       </h2>
-      <p class="text-neutral-700 text-lg mb-6">
-        听日语句子，尝试输入你听到的内容，检查答案后可针对性播放错误部分的语音，高效纠正问题。
-      </p>
-      <div class="w-20 h-1 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full"></div>
     </section>
 
-    <!-- 文本输入区域 -->
-    <section class="mb-12 bg-white rounded-xl shadow-md p-6 md:p-8 max-w-4xl mx-auto transform transition-all duration-500 hover:shadow-lg">
-      <h3 class="text-xl font-semibold mb-6 flex items-center">
-        <i class="fa fa-pencil-square-o text-primary mr-2"></i>输入文本内容
-      </h3>
-
-      <div class="space-y-6">
-        <!-- 混合输入区域 -->
-        <div>
-          <label for="mixed-text" class="block text-sm font-medium text-neutral-700 mb-2">
-            输入日语文本
-          </label>
-          <textarea
-            id="mixed-text"
-            v-model="mixedText"
-            rows="10"
-            class="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-none text-lg"
-            placeholder="请输入日语文本，例如：
-電話で女の学生と男の学生が話しています。男の学生は明日何をしなければなりませんか。
-女：もしもし、伊藤君、私田中だけど。明日のサークルのミーティングが急用で出られなくなっちゃったから代わりに仕切ってくれない？
-男：はい、わかりました。何か特別に準備することはありますか？"
-          ></textarea>
-          <p class="mt-1 text-sm text-neutral-500">
-            <i class="fa fa-info-circle mr-1"></i> 系统会按句号自动断句，并识别性别标识（如"女："、"男："）
-          </p>
-        </div>
-
-        <div class="flex flex-col sm:flex-row gap-4 justify-end pt-4">
-          <button
-            @click="clearText"
-            class="px-6 py-2 border border-neutral-300 rounded-lg text-neutral-700 hover:bg-neutral-100 transition-all flex items-center justify-center"
-          >
-            <i class="fa fa-eraser mr-2"></i>清空
-          </button>
-          <button
-            @click="processText"
-            class="px-6 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center font-medium"
-          >
-            <i class="fa fa-magic mr-2"></i>处理文本
-          </button>
-        </div>
-      </div>
-    </section>
-
+    <!-- 加载动画 -->
+    <div v-if="loading" class="flex justify-center items-center py-16">
+      <span class="text-primary text-lg flex items-center"><i class="fa fa-spinner fa-spin mr-2"></i>数据加载中...</span>
+    </div>
     <!-- 结果显示区域 -->
-    <section :class="{ 'hidden': !showResults }" id="results-section" class="max-w-4xl mx-auto">
+    <section :class="{ 'hidden': !showResults || loading }" id="results-section" class="max-w-4xl mx-auto">
       <div id="practice-content" class="flex justify-between items-center mb-6">
         <h3 class="text-xl font-semibold flex items-center">
           <i class="fa fa-list-alt text-primary mr-2"></i>练习内容
@@ -106,11 +62,12 @@
 import { defineComponent, ref, onMounted } from 'vue'
 import SentenceCard from './SentenceCard.vue'
 import { useTextProcessing } from '../composables/useTextProcessing'
+import api from '../composables/useApi'
 
 export default defineComponent({
   name: 'MainContent',
   components: {
-    SentenceCard
+    SentenceCard,
   },
   emits: ['update-sentence'],
   setup(props, { emit }) {
@@ -129,7 +86,8 @@ export default defineComponent({
 女の学生はこの後何をしなければなりませんか。`)
 
     const { splitByPeriod, extractAndRemoveGenderPrefix, showNotification } = useTextProcessing()
-    const sentenceData = ref([])
+  const sentenceData = ref([])
+  const loading = ref(false)
     const chineseSentences = ref([])
     const showResults = ref(false)
     const editModalData = ref({
@@ -266,11 +224,30 @@ export default defineComponent({
       }
     };
 
-    onMounted(() => {
-      // 页面加载完成后自动处理文本 (Auto-process text on page load)
-      setTimeout(() => {
+
+    // 页面加载时从后端获取句子
+    onMounted(async () => {
+      loading.value = true;
+      try {
+        const res = await api.get('/sentences');
+        // 兼容分页结构
+        const rows = res.data || res;
+        sentenceData.value = (rows.data || rows).map(row => ({
+          text: row.text,
+          gender: '',
+          errors: [],
+          lastErrorRange: { start: 0, end: 0 },
+          lastErrorToParticleRange: { start: 0, end: 0 },
+          shortPlayRange: { start: 0, end: 0 }
+        }));
+        chineseSentences.value = Array(sentenceData.value.length).fill('');
+        showResults.value = true;
+      } catch (e) {
+        // 若后端不可用，回退本地处理
         processText();
-      }, 500);
+      } finally {
+        loading.value = false;
+      }
     });
 
     return {
@@ -278,6 +255,7 @@ export default defineComponent({
       sentenceData,
       chineseSentences,
       showResults,
+      loading,
       processText,
       clearText,
       showNotification,

@@ -8,5 +8,5 @@ export default defineConfig({
     outDir: 'dist'
   },
   // Base URL for GitHub Pages deployment
-  base: '/jlpt-listening-qwen-vue-app/'
+  base: '/jlpt-listening-vue-app/'
 })
