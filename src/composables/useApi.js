@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api', // 可根据实际后端端口调整
+  baseURL: import.meta.env.VITE_API_BASE || 'http://localhost:3000/api',
   timeout: 10000,
 });
 
