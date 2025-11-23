@@ -108,7 +108,7 @@ export default defineComponent({
         }
         loading.value = true;
         try {
-          const res = await api.get(`/sentences?itemId=${itemId}`);
+          const res = await api.get(`/items/${itemId}/sentences`);
           const rows = res.data || res;
           sentenceData.value = (rows.data || rows);
           chineseSentences.value = Array(sentenceData.value.length).fill('');

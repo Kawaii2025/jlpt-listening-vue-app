@@ -60,12 +60,12 @@ const fetchExams = async () => {
 }
 const fetchParts = async (examId) => {
   if (!examId) { parts.value = []; return }
-  const res = await api.get(`/parts?examId=${examId}`)
+  const res = await api.get(`/exams/${examId}/parts`)
   parts.value = res.data || res
 }
 const fetchItems = async (partId) => {
   if (!partId) { items.value = []; return }
-  const res = await api.get(`/items/byPart/${partId}`)
+  const res = await api.get(`/parts/${partId}/items`)
   items.value = res.data || res
 }
 
